@@ -1,0 +1,2 @@
+# rpistation
+RaspberryPi meteorostanica

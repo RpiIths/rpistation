@@ -1,0 +1,39 @@
+#Geting and preparing data
+from firebase import firebase
+import ast
+firebase = firebase.FirebaseApplication('https://rpistation-d3726.firebaseio.com', None)
+result = firebase.get('/merenja', None)
+X=[]
+y=[]
+for key in result:
+    merenje=ast.literal_eval(result[key])
+    vreme=merenje['vreme']
+    mesec=int((vreme.split("-"))[1])
+    sat=int(vreme.split()[1].split(":")[0])
+    X.append([merenje['vlag'],mesec,sat])
+    y.append(merenje['temp'])
+result=None
+#Fake data setup
+#fakex=[[50,11,2],[50,1,2],[25,1,8],[20,3,10],[28,3,9],[35,3,9]]
+#fakey=[-5,-10,0,3,10,12]
+#for i in range(0,len(fakex)):
+#    X.append(fakex[i])
+#    y.append(fakey[i])
+#
+print("Podaci obradjeni")
+#Setting up the regression
+accs=[]
+from sklearn import linear_model
+from sklearn.svm import SVR
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+clfs=[linear_model.BayesianRidge(),linear_model.Ridge (alpha = .5),linear_model.Ridge (),linear_model.Lasso(alpha = 0.1),linear_model.Lasso(),linear_model.LinearRegression(),SVR(kernel='linear'),linear_model.ElasticNet()]
+for clf in clfs:
+    clf.fit(X_train,y_train)
+    accs.append(clf.score(X_test,y_test))
+maxx=max(accs)
+for i in range(0,len(accs)):
+    if accs[i]==maxx:
+        print(i,"je max",accs)
+        break
+print("Regresija spremna",y_test,clfs[i].predict(X_test))
